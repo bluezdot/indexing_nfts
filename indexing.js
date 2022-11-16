@@ -1,57 +1,78 @@
 const { ethers } = require("ethers");
-const { client } = require("./connecting.js");
 const express = require("express");
 const app = express();
+const {hex_to_address, hex_to_decimal } = require("../typeConvert.js");
+const {excuteQuery} = require("./query.js");
+require('dotenv').config();
 
-// openning a port
+// OPEN A PORT //
 app.listen(3000, ()=> {
     console.log("Server is listening on port 3000");
 })
 
-// convert raw_hex to address/NFTs ID
-function hex_to_address(raw_hex) {
-    const clean_hex = raw_hex.substring(26,);
-    const address = '0x'.concat(clean_hex);
-    return address;
-}
-  
-function hex_to_decimal(raw_hex) {
-    const clean_hex = raw_hex.substring(2,);
-    const decimal = parseInt(clean_hex, 16);
-    return decimal
-}
+// CREATE TABLE //
+createTableQuery = `CREATE TABLE Knights (
+	transactionHash varchar,
+	sender varchar,
+	receiver varchar,
+	blockNumber int,
+	blockHash varchar,
+	logIndex int,
+	removed bool,
+	PRIMARY KEY(transactionHash)
+)`;
+
+excuteQuery(createTableQuery);
 
 async function main() {
 
     console.log("-- START --");
 
-    const start = 23045358;
-    const end = 23050358;
     // var url = "https://1rpc.io/bnb";
-    var url = "https://binance.nodereal.io";
+    var url = process.env.NODE;
     const provider = new ethers.providers.JsonRpcProvider(url);
 
     // CONFIGURATION //
-    // const signer = provider.getSigner('0x06738d9af28053a58ddb92e7026682cbcf364a5fd')
-    // const myAddress = await signer.getAddress()
-    const knightAddress = "0xa7a9a8156C24C4B0ca910c3bA842D1F1ac7200ef";
-    const knightAbi = [
-        "function name() view returns (string)",
-        "event Transfer(address,address,uint256)"
-    ];
+    const knightAddress = process.env.KNIGHT_CONTRACT;
+    const knightAbi = process.env.KNIGHT_ABI;
     const knightContract = new ethers.Contract(knightAddress, knightAbi, provider);
 
-    // QUERY STATEMENT //
-    // blockNumber = await provider.getBlockNumber();
-    // balance = await provider.getBalance("0x6e143f784Cb160f10966096AB2aC4207D633d5d7");
-    filter = knightContract.filters.Transfer(null, null); // filter all addresses to all addresses
-    ev_query = await knightContract.queryFilter(filter, start, end);
-
     // LOGGING //
-    // console.log(blockNumber);
-    // console.log(ethers.utils.formatEther(balance));
-    console.log(ev_query);
-    console.log(`number of transfer from ${start} to ${end}: ${Object.keys(ev_query).length}`);
+    const numBlock = await provider.getBlockNumber();
+    console.log(`Number block: ${blockNumber}`);
+    console.log(process.env.KNIGHT_CONTRACT);
+    const numBatch = (numBlock - (numBlock % 5000))/5000;
+
+    // QUERY STATEMENT //
+    filter = knightContract.filters.Transfer(null, null); // filter all addresses to all addresses
+    for (let batch = 0; batch < numBatch + 1; batch++) {
+        const start = 5000 * batch;
+        const end = start + 5000;
+        ev_query = await knightContract.queryFilter(filter, start, end);
+        
+        // LOGGING BATCH INFORMATION
+        const numTransaction = Object.keys(ev_query).length;
+        console.log(`number of transfer from ${start} to ${end}: ${numTransaction}`);
+
+        // WRITE TO DATABASE 
+        for (let trans = 0; trans < numTransaction + 1; trans++) {
+            data = ev_query[trans];
+            transactionHash = data.transactionHash;
+            sender = data.topics[1];
+            receiver = data.topics[2];
+            blockNumber = data.blockNumber;
+            blockHash = data.blockHash;
+            logIndex = data.logIndex;
+            removed = data.removed;
+            writeQuery = `INSERT INTO Knights
+                          VALUES (${transactionHash}, ${sender}, ${receiver}, ${blockNumber}, ${blockHash}, ${logIndex}, ${removed})`;
+            excuteQuery(writeQuery);
+        }
+    }
+
+    
+    
+
 
     // connecting to database
     // client.connect()
