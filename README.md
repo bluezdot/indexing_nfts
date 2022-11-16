@@ -1,6 +1,7 @@
 # indexing_nfts
+You have to create .env file with these variables: HOST, DATABASE, PORT, USER, PASSWORD, KNIGHT_CONTRACT, KNIGHT_ABI, NODE, START_BATCH
 
-## flow 
+## STAGE 1: INDEXING
 
 0. Tạo Table
 CREATE TABLE Knights (
@@ -31,3 +32,19 @@ end = num_block + 1
 do sthing
 
 4.  
+
+## STAGE 2: QUERYING
+Cho 1 địa chỉ ví A. Hỏi người đấy có những NFT FaraLand nào ?
+
+1. Query tất cả Transfer có sender hoặc receiver là địa chỉ A
+SELECT * FROM Knights 
+WHERE sender == A OR receiver == A
+
+2. List NFTs khả thi là A đang sở hữu: 
+Select distict tokenId from (1)
+
+3. NFTs hiện sỡ hữu:
+For nft in tokenId:
+If [count(receiver = A) - count(sender = A)] = 1:
+=> A sở hữu nft.
+
