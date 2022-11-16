@@ -1,6 +1,6 @@
 function hex_to_address(raw_hex) {
   const clean_hex = raw_hex.substring(26,);
-  const address = '0x'.concat(clean_hex);
+  const address = "0x".concat(clean_hex);
   return address;
 }
 
