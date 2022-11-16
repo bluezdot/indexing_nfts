@@ -2,8 +2,9 @@ const { ethers } = require("ethers");
 const express = require("express");
 const app = express();
 const {hex_to_address, hex_to_decimal} = require("../typeConvert.js");
-const {excuteQuery} = require("../query.js");
-const myLogger = require("../logger.js");
+const {excuteQuery} = require("./test_connecting.js");
+// const client = require("D:/Savage/indexing_nfts/connecting.js");
+const myLogger = require("/Savage/indexing_nfts/logging/logger.js");
 require('dotenv').config();
 
 // OPEN A PORT //
@@ -41,11 +42,11 @@ async function main() {
     const numBlock = await provider.getBlockNumber();
     myLogger.log(`Number block: ${numBlock}`);
     myLogger.log(`NFTs address: ${process.env.KNIGHT_CONTRACT}`);
-    const numBatch = 10;
+    const numBatch = (numBlock - (numBlock % 5000))/5000;
 
     // QUERY STATEMENT //
     filter = knightContract.filters.Transfer(null, null); // filter all addresses to all addresses
-    for (let batch = 0; batch < numBatch; batch++) {
+    for (let batch = 4000; batch < numBatch; batch++) {
         const start = 5000 * batch;
         const end = start + 5000;
         ev_query = await knightContract.queryFilter(filter, start, end);
@@ -53,8 +54,8 @@ async function main() {
         const numTransaction = Object.keys(ev_query).length;
         myLogger.log(`number of transfer from ${start} to ${end}: ${numTransaction}`);
 
-        // WRITE TO DATABASE 
-        if (!numTransaction) {
+        // WRITE TO DATABASE
+        if (numTransaction) {
           for (let trans = 0; trans < numTransaction; trans++) {
             data = ev_query[trans];
             transactionHash = data.transactionHash;
@@ -65,14 +66,15 @@ async function main() {
             blockHash = data.blockHash;
             logIndex = data.logIndex;
             removed = data.removed;
+            myLogger.log(`${typeof(transactionHash)}, ${typeof(sender)}, ${typeof(receiver)}, ${typeof(tokenId)}, ${typeof(blockNumber)}, ${typeof(blockHash)}, ${typeof(logIndex)}, ${typeof(removed)}`)
+            myLogger.log(`${transactionHash}, ${sender}, ${receiver}, ${tokenId}, ${blockNumber}, ${blockHash}, ${logIndex}, ${removed}`)
             writeQuery = `INSERT INTO Knights
-                          VALUES (${transactionHash}, ${sender}, ${receiver}, ${tokenId} ${blockNumber}, ${blockHash}, ${logIndex}, ${removed})`;
+                          VALUES ('${transactionHash}', '${sender}', '${receiver}', ${tokenId}, ${blockNumber}, '${blockHash}', ${logIndex}, ${removed})`;
             myLogger.log(`Add Transfer with transactionHash ${transactionHash}`)
             excuteQuery(writeQuery);
+          }
         }
-        }
-    }
-
+      }
     myLogger.log("-- END --");
 
 }
