@@ -7,22 +7,23 @@ const myLogger = require("/Savage/indexing_nfts/logging/logger.js");
 require('dotenv').config();
 
 // OPEN A PORT //
-app.listen(3000, ()=> {
-    myLogger.log("Server is listening on port 3000");
-})
+// app.listen(3000, ()=> {
+//     myLogger.log("Server is listening on port 3000");
+// })
 
 // CREATE TABLE //
 createTableQuery = `CREATE TABLE IF NOT EXISTS Knights (
 	transactionHash varchar,
 	sender varchar,
 	receiver varchar,
-    tokenId int,
+  tokenId bigint,
 	blockNumber int,
 	blockHash varchar,
 	logIndex int,
 	removed bool,
-	PRIMARY KEY(transactionHash)
+	PRIMARY KEY(transactionHash, logIndex)
 )`;
+myLogger.log("Creating Table")
 excuteQuery(createTableQuery);
 
 async function main() {
@@ -46,12 +47,10 @@ async function main() {
     // QUERY STATEMENT //
     filter = knightContract.filters.Transfer(null, null); // filter all addresses to all addresses
     for (let batch = process.env.START_BATCH; batch < numBatch + 1; batch++) {
+        start = 5000 * batch;
+        end = start + 5000;
         if (batch == numBatch) {
-            const start = 5000 * batch;
-            const end = numBlock + 1;
-        } else {
-            const start = 5000 * batch;
-            const end = start + 5000;
+            end = numBlock + 1;
         }
         ev_query = await knightContract.queryFilter(filter, start, end);
         // LOGGING BATCH INFORMATION
@@ -72,7 +71,7 @@ async function main() {
             removed = data.removed;
             writeQuery = `INSERT INTO Knights
                           VALUES ('${transactionHash}', '${sender}', '${receiver}', ${tokenId}, ${blockNumber}, '${blockHash}', ${logIndex}, ${removed})`;
-            myLogger.log(`Add Transfer with transactionHash ${transactionHash}`)
+            myLogger.log(`Add Transfer with (transactionHash - logIndex): (${transactionHash} - ${logIndex}`)
             excuteQuery(writeQuery);
           }
         }

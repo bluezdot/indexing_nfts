@@ -1,20 +1,20 @@
 # indexing_nfts
-You have to create .env file with these variables: HOST, DATABASE, PORT, USER, PASSWORD, KNIGHT_CONTRACT, KNIGHT_ABI, NODE, START_BATCH
+You have to create .env file with these variables: HOST, DATABASE, PORT, USER, PASSWORD, KNIGHT_CONTRACT, KNIGHT_ABI, NODE, START_BATCH, LOG_PATH
 
 ## STAGE 1: INDEXING
 
 0. Tạo Table
-CREATE TABLE Knights (
+createTableQuery = `CREATE TABLE IF NOT EXISTS Knights (
 	transactionHash varchar,
 	sender varchar,
 	receiver varchar,
-	tokenId int,
-	blockNumber int,
+  tokenId bigint,
+	blockNumber bigint,
 	blockHash varchar,
 	logIndex int,
 	removed bool,
 	PRIMARY KEY(transactionHash)
-);
+)`;
 
 1. query num_block
 

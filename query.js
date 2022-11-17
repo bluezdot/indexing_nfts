@@ -13,13 +13,11 @@ const pool = new pg.Pool({
 function excuteQuery(query) {
     pool.connect(function(err, client, done) {
         if(err) {
-            myLogger.err('connection error', err)
             return console.error('connection error', err);
         }
         client.query(query, function(err, result) {
             done();
             if(err) {
-                myLogger.err('error running query', err)
                 return console.error('error running query', err);
             }
         });
