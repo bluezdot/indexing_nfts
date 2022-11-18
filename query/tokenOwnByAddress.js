@@ -1,7 +1,7 @@
 const {excuteQuery} = require("../query.js");
 
 // INPUT ADDRESS // 
-const ADDRESS = '0x69e8d62c3d4002d1226dfccedf148a704f34170b';
+const ADDRESS = '0x83ff6c3e1fb04c5621399b4db9cabc00609d9abf';
 
 
 query = `SELECT tokenId FROM
