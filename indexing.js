@@ -2,7 +2,6 @@ const { ethers } = require("ethers");
 const express = require("express");
 const app = express();
 const {hex_to_address, hex_to_decimal} = require("./typeConvert.js");
-const {excuteQuery} = require("./query.js");
 const myLogger = require("/Savage/indexing_nfts/logging/logger.js");
 require('dotenv').config();
 
@@ -71,7 +70,7 @@ async function main() {
             removed = data.removed;
             writeQuery = `INSERT INTO Knights
                           VALUES ('${transactionHash}', '${sender}', '${receiver}', ${tokenId}, ${blockNumber}, '${blockHash}', ${logIndex}, ${removed})`;
-            myLogger.log(`Add Transfer with (transactionHash - logIndex): (${transactionHash} - ${logIndex}`)
+            myLogger.log(`Add Transfer with (transactionHash - logIndex): (${transactionHash} - ${logIndex})`)
             excuteQuery(writeQuery);
           }
         }

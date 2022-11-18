@@ -16,10 +16,11 @@ function excuteQuery(query) {
             return console.error('connection error', err);
         }
         client.query(query, function(err, result) {
-            done();
+            done()
             if(err) {
                 return console.error('error running query', err);
             }
+            console.log(result.rows[0]);
         });
     });
 }
