@@ -20,8 +20,7 @@ function excuteQuery(query) {
             if(err) {
                 return console.error('error running query', err);
             }
-            console.log(result.rows);
-            myLogger.log(result.rows);
+            // console.log(result.rows);
         });
     });
 }
